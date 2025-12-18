@@ -1,0 +1,1481 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScriptBlox | Open Source Finder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #0078d4;
+            --primary-dark: #106ebe;
+            --success: #238636;
+            --warning: #f0883e;
+            --danger: #da3633;
+            --bg-dark: #0d1117;
+            --bg-panel: #161b22;
+            --bg-card: #1e1e1e;
+            --bg-input: #2a2a2a;
+            --border: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--bg-panel) 0%, #1a1f29 100%);
+            border-radius: 12px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .logo-section h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary), #58a6ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .logo-section p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto 25px;
+        }
+
+        /* Search Controls */
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 16px 20px 16px 55px;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.2);
+        }
+
+        #searchBtn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #searchBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 120, 212, 0.4);
+        }
+
+        #searchBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Advanced Options */
+        .advanced-options {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .option-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .option-checkbox input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Status */
+        .status-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #statusText {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 10px;
+            min-height: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px auto 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #58a6ff);
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 3px;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 25px;
+            min-height: 600px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scripts Panel */
+        .scripts-panel {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h3 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .sort-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .sort-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .sort-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .scripts-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .script-tab {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .script-tab:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .script-tab.active {
+            background: rgba(0, 120, 212, 0.15);
+            border-left: 4px solid var(--primary);
+        }
+
+        .script-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), #58a6ff);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .script-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .script-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .script-meta {
+            display: flex;
+            gap: 10px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .script-game {
+            background: rgba(0, 120, 212, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .script-badge {
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .badge-open {
+            background: rgba(35, 134, 54, 0.2);
+            color: #3fb950;
+        }
+
+        .badge-verified {
+            background: rgba(0, 120, 212, 0.2);
+            color: #58a6ff;
+        }
+
+        .badge-loadstring {
+            background: rgba(248, 81, 73, 0.2);
+            color: #f85149;
+        }
+
+        .script-stats {
+            display: flex;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .panel-footer {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Script Viewer */
+        .script-viewer {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .viewer-header {
+            padding: 20px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .script-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #selectedScriptTitle {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+
+        #selectedScriptInfo {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, var(--success), #2ea043);
+            color: white;
+        }
+
+        .copy-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(35, 134, 54, 0.4);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Script Content */
+        .script-content {
+            flex: 1;
+            padding: 0;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        #scriptContent {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--text-primary);
+            min-height: 300px;
+            overflow-x: auto;
+            border: none;
+            margin: 0;
+            tab-size: 4;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            background: var(--success);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-input);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .viewer-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .action-buttons {
+                width: 100%;
+            }
+            
+            .action-btn {
+                flex: 1;
+                justify-content: center;
+            }
+            
+            .panel-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+            
+            .sort-controls {
+                justify-content: center;
+            }
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 0 20px 20px;
+        }
+
+        .page-btn {
+            padding: 8px 15px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Info boxes */
+        .info-box {
+            background: rgba(0, 120, 212, 0.1);
+            border: 1px solid rgba(0, 120, 212, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        .info-box i {
+            color: #58a6ff;
+            margin-right: 8px;
+        }
+
+        /* Filter chips */
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+            padding: 0 20px;
+        }
+
+        .filter-chip {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-chip:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <h1><i class="fas fa-code"></i> ScriptBlox Open Source Finder</h1>
+                <p>Find ALL open-source Roblox scripts. Searches every script and extracts clean code from loadstrings.</p>
+            </div>
+            
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search ALL scripts (e.g., '99 nights', 'admin', 'fly', 'esp')">
+                </div>
+                
+                <div class="advanced-options">
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="fetchAllPages" checked>
+                        <span>Fetch ALL pages (gets everything)</span>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="extractLoadstrings" checked>
+                        <span>Extract loadstring content</span>
+                    </label>
+                    <label class="option-checkbox">
+                        <input type="checkbox" id="strictFilter" checked>
+                        <span>Strict open-source filter</span>
+                    </label>
+                </div>
+                
+                <button id="searchBtn" class="search-btn">
+                    <i class="fas fa-search"></i> Fetch ALL Open Source Scripts
+                </button>
+                
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <span>This will fetch ALL scripts matching your search and show only open-source ones with clean code.</span>
+                </div>
+            </div>
+            
+            <div class="status-section">
+                <div id="statusText">Enter a search term to find ALL open-source scripts</div>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Starting...</div>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <!-- Left Panel - Scripts List -->
+            <div class="scripts-panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-clipboard-list"></i> Open Source Scripts</h3>
+                    <div class="sort-controls">
+                        <button class="sort-btn active" data-sort="relevance">Best Match</button>
+                        <button class="sort-btn" data-sort="views">Most Views</button>
+                        <button class="sort-btn" data-sort="date">Newest</button>
+                    </div>
+                </div>
+                
+                <div class="scripts-list" id="scriptsList">
+                    <div class="empty-state" id="emptyState">
+                        <i class="fas fa-code-branch"></i>
+                        <h3>No scripts yet</h3>
+                        <p>Enter a search term to fetch ALL open-source scripts</p>
+                    </div>
+                    
+                    <div class="loading" id="scriptsLoading">
+                        <div class="spinner"></div>
+                        <p>Fetching ALL scripts...</p>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
+                            This may take a moment as we analyze every script...
+                        </p>
+                    </div>
+                    
+                    <!-- Script tabs will be inserted here -->
+                </div>
+                
+                <div class="panel-footer">
+                    <div id="statsText">Found: 0 open source scripts</div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+                        <i class="fas fa-info-circle"></i> <span id="analysisInfo">Ready to search</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Script Viewer -->
+            <div class="script-viewer">
+                <div class="viewer-header">
+                    <div class="script-details">
+                        <h2 id="selectedScriptTitle">Select a Script</h2>
+                        <div id="selectedScriptInfo">Click on any script to view its clean, open-source code</div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="copyBtn" class="action-btn copy-btn" disabled>
+                            <i class="fas fa-copy"></i> Copy Code
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="script-content">
+                    <pre id="scriptContent">Select a script to view its clean, open-source code...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Code copied!</span>
+    </div>
+
+    <script>
+        class ScriptBloxOpenSourceFinder {
+            constructor() {
+                this.scripts = [];
+                this.filteredScripts = [];
+                this.selectedScript = null;
+                this.currentSort = 'relevance';
+                this.isSearching = false;
+                this.currentPage = 1;
+                this.totalPages = 1;
+                this.loadstringCache = new Map();
+                this.fetchQueue = [];
+                this.processingQueue = false;
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.startQueueProcessor();
+            }
+            
+            initializeElements() {
+                this.elements = {
+                    searchInput: document.getElementById('searchInput'),
+                    searchBtn: document.getElementById('searchBtn'),
+                    fetchAllPages: document.getElementById('fetchAllPages'),
+                    extractLoadstrings: document.getElementById('extractLoadstrings'),
+                    strictFilter: document.getElementById('strictFilter'),
+                    statusText: document.getElementById('statusText'),
+                    progressBar: document.getElementById('progressBar'),
+                    progressFill: document.getElementById('progressFill'),
+                    progressText: document.getElementById('progressText'),
+                    scriptsList: document.getElementById('scriptsList'),
+                    emptyState: document.getElementById('emptyState'),
+                    scriptsLoading: document.getElementById('scriptsLoading'),
+                    statsText: document.getElementById('statsText'),
+                    analysisInfo: document.getElementById('analysisInfo'),
+                    selectedScriptTitle: document.getElementById('selectedScriptTitle'),
+                    selectedScriptInfo: document.getElementById('selectedScriptInfo'),
+                    scriptContent: document.getElementById('scriptContent'),
+                    copyBtn: document.getElementById('copyBtn'),
+                    toast: document.getElementById('toast'),
+                    toastMessage: document.getElementById('toastMessage')
+                };
+            }
+            
+            setupEventListeners() {
+                this.elements.searchBtn.addEventListener('click', () => this.searchAllScripts());
+                this.elements.searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.searchAllScripts();
+                });
+                
+                this.elements.copyBtn.addEventListener('click', () => this.copyScriptCode());
+                
+                // Sort buttons
+                document.querySelectorAll('.sort-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentSort = e.target.dataset.sort;
+                        this.sortScripts();
+                    });
+                });
+                
+                // Set example placeholder
+                this.elements.searchInput.placeholder = "Try: '99 nights', 'admin panel', 'auto farm', 'gui library'";
+            }
+            
+            startQueueProcessor() {
+                // Process fetch queue with delays
+                setInterval(() => {
+                    if (this.fetchQueue.length > 0 && !this.processingQueue) {
+                        this.processNextInQueue();
+                    }
+                }, 500);
+            }
+            
+            async searchAllScripts() {
+                if (this.isSearching) {
+                    this.showToast('Already fetching scripts...', 'warning');
+                    return;
+                }
+                
+                const searchTerm = this.elements.searchInput.value.trim();
+                
+                if (!searchTerm) {
+                    this.showStatus('Please enter a search term', 'error');
+                    return;
+                }
+                
+                this.isSearching = true;
+                this.showLoading(true);
+                this.clearResults();
+                
+                this.showStatus(`Searching for ALL scripts containing "${searchTerm}"...`, 'loading');
+                this.updateProgress(5, 'Starting search...');
+                
+                try {
+                    // Start fetching ALL pages
+                    await this.fetchAllPages(searchTerm);
+                    
+                } catch (error) {
+                    console.error('Search error:', error);
+                    this.showStatus(`Error: ${error.message}`, 'error');
+                    this.showLoading(false);
+                    this.isSearching = false;
+                }
+            }
+            
+            async fetchAllPages(searchTerm) {
+                this.fetchQueue = [];
+                this.scripts = [];
+                this.currentPage = 1;
+                
+                // First, get initial page to know total pages
+                this.updateProgress(10, 'Fetching page 1...');
+                
+                const firstPageData = await this.fetchPage(searchTerm, 1);
+                
+                if (!firstPageData || !firstPageData.result) {
+                    throw new Error('No data received from API');
+                }
+                
+                this.totalPages = firstPageData.result.totalPages || 1;
+                this.scripts = firstPageData.result.scripts || [];
+                
+                this.updateProgress(20, `Found ${this.totalPages} total pages. Fetching all...`);
+                
+                // Queue up all remaining pages
+                for (let page = 2; page <= this.totalPages; page++) {
+                    this.fetchQueue.push({
+                        type: 'page',
+                        searchTerm: searchTerm,
+                        page: page
+                    });
+                }
+                
+                // Wait for all pages to be fetched
+                await this.waitForQueueCompletion();
+                
+                this.updateProgress(70, `Fetched ${this.scripts.length} total scripts. Analyzing...`);
+                this.elements.analysisInfo.textContent = `Fetched ${this.scripts.length} scripts. Analyzing for open source...`;
+                
+                // Analyze all scripts for open source
+                await this.analyzeAllScripts();
+                
+                this.filterOpenSourceScripts();
+                this.sortScripts();
+                
+                const openSourceCount = this.filteredScripts.length;
+                const totalCount = this.scripts.length;
+                
+                this.showStatus(`Found ${openSourceCount} open-source scripts out of ${totalCount} total`, 'success');
+                this.elements.analysisInfo.textContent = `${openSourceCount} open-source scripts found`;
+                
+                this.updateProgress(100, 'Complete!');
+                setTimeout(() => this.showLoading(false), 1000);
+                this.isSearching = false;
+            }
+            
+            async fetchPage(searchTerm, page) {
+                try {
+                    const url = `https://scriptblox.com/api/script/search?q=${encodeURIComponent(searchTerm)}&page=${page}`;
+                    
+                    // Use CORS proxy
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                    
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    const data = await response.json();
+                    const parsedData = JSON.parse(data.contents);
+                    
+                    return parsedData;
+                    
+                } catch (error) {
+                    console.warn(`Failed to fetch page ${page}:`, error);
+                    return { result: { scripts: [] } };
+                }
+            }
+            
+            async processNextInQueue() {
+                if (this.fetchQueue.length === 0) return;
+                
+                this.processingQueue = true;
+                const item = this.fetchQueue.shift();
+                
+                try {
+                    if (item.type === 'page') {
+                        const pageData = await this.fetchPage(item.searchTerm, item.page);
+                        if (pageData.result?.scripts) {
+                            this.scripts.push(...pageData.result.scripts);
+                            
+                            // Update progress
+                            const fetched = this.scripts.length;
+                            const estimatedTotal = 20 * this.totalPages; // Estimate 20 per page
+                            const progress = 20 + (fetched / estimatedTotal * 45);
+                            this.updateProgress(Math.min(progress, 65), `Fetched ${fetched} scripts...`);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Queue item failed:', error);
+                }
+                
+                this.processingQueue = false;
+            }
+            
+            async waitForQueueCompletion() {
+                return new Promise((resolve) => {
+                    const checkInterval = setInterval(() => {
+                        if (this.fetchQueue.length === 0 && !this.processingQueue) {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }
+                    }, 1000);
+                });
+            }
+            
+            async analyzeAllScripts() {
+                const extractLoadstrings = this.elements.extractLoadstrings.checked;
+                const strictFilter = this.elements.strictFilter.checked;
+                
+                let analyzedCount = 0;
+                const totalScripts = this.scripts.length;
+                
+                for (let i = 0; i < this.scripts.length; i++) {
+                    const script = this.scripts[i];
+                    
+                    // Update progress
+                    analyzedCount++;
+                    const progress = 70 + (analyzedCount / totalScripts * 25);
+                    this.updateProgress(progress, `Analyzing ${analyzedCount}/${totalScripts}...`);
+                    this.elements.analysisInfo.textContent = `Analyzing ${analyzedCount}/${totalScripts} scripts`;
+                    
+                    await this.analyzeScript(script, extractLoadstrings, strictFilter);
+                    
+                    // Small delay to avoid rate limiting
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+            }
+            
+            async analyzeScript(script, extractLoadstrings, strictFilter) {
+                const scriptContent = script.script || '';
+                
+                if (!scriptContent) {
+                    script.isOpenSource = false;
+                    script.cleanContent = '';
+                    return;
+                }
+                
+                // Extract loadstring content if enabled
+                if (extractLoadstrings) {
+                    const loadstringContent = await this.extractLoadstringContent(scriptContent);
+                    if (loadstringContent) {
+                        script.containsLoadstring = true;
+                        script.loadstringContent = loadstringContent;
+                        script.analyzedContent = loadstringContent;
+                    } else {
+                        script.analyzedContent = scriptContent;
+                    }
+                } else {
+                    script.analyzedContent = scriptContent;
+                }
+                
+                // Check if it's open source
+                script.isOpenSource = this.isOpenSource(script.analyzedContent, strictFilter);
+                
+                // Create clean content for display (no broken HTML)
+                script.cleanContent = this.createCleanContent(script.analyzedContent);
+            }
+            
+            async extractLoadstringContent(content) {
+                // Look for loadstring patterns
+                const loadstringRegex = /loadstring\(([^)]+)\)/g;
+                const matches = [...content.matchAll(loadstringRegex)];
+                
+                if (matches.length === 0) return null;
+                
+                // Try to extract URL and fetch content
+                for (const match of matches) {
+                    const loadstringArg = match[1].trim();
+                    const urlMatch = loadstringArg.match(/['"](https?:\/\/[^'"]+)['"]/);
+                    
+                    if (urlMatch) {
+                        const url = urlMatch[1];
+                        
+                        // Check cache first
+                        if (this.loadstringCache.has(url)) {
+                            return this.loadstringCache.get(url);
+                        }
+                        
+                        try {
+                            // Try to fetch loadstring content
+                            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                            const response = await fetch(proxyUrl, { timeout: 10000 });
+                            
+                            if (response.ok) {
+                                const data = await response.json();
+                                const fetchedContent = data.contents;
+                                
+                                if (fetchedContent && fetchedContent.length > 0) {
+                                    this.loadstringCache.set(url, fetchedContent);
+                                    return fetchedContent;
+                                }
+                            }
+                        } catch (error) {
+                            console.warn('Failed to fetch loadstring:', error);
+                        }
+                    }
+                }
+                
+                return null;
+            }
+            
+            isOpenSource(content, strict) {
+                if (!content || content.trim().length < 20) {
+                    return false;
+                }
+                
+                const contentStr = content.toString();
+                const contentLower = contentStr.toLowerCase();
+                
+                // Reject obfuscated/minified code
+                const rejectionPatterns = [
+                    /\[char\]/i,
+                    /fromcharcode/i,
+                    /\\x[a-f0-9]{2}/i,
+                    /[0-9a-f]{32,}/i,
+                    /\|\|.*\|\|/,
+                    /\w{50,}/,
+                    /eval\(.*function\(\)\{/i,
+                    /loadstring\(.*loadstring/i,
+                    /local\s+[a-f0-9]{16,}/i,
+                    /function\(\)\{.*\}\(\)/i
+                ];
+                
+                for (const pattern of rejectionPatterns) {
+                    if (pattern.test(contentStr)) {
+                        return false;
+                    }
+                }
+                
+                // Check for minified code (very few line breaks)
+                const lines = contentStr.split('\n');
+                if (lines.length < 3 && contentStr.length > 100) {
+                    return false;
+                }
+                
+                // Look for readable Lua/Roblox code patterns
+                const positivePatterns = [
+                    /local\s+\w+\s*=/,
+                    /function\s+\w+\(/,
+                    /game:GetService\(/,
+                    /workspace/,
+                    /player/i,
+                    /wait\(/,
+                    /print\(/,
+                    /instance\.new/i,
+                    /vector3/i,
+                    /cframe/i,
+                    /for\s+\w+\s*in\s+pairs/,
+                    /if\s+.*\s+then/
+                ];
+                
+                let positiveScore = 0;
+                for (const pattern of positivePatterns) {
+                    if (pattern.test(contentStr)) {
+                        positiveScore++;
+                    }
+                }
+                
+                // Check for comments (good sign of open source)
+                const hasComments = /--/.test(contentStr) || /\/\//.test(contentStr);
+                
+                // For strict mode, require more positive indicators
+                if (strict) {
+                    return positiveScore >= 4 && (hasComments || lines.length >= 5);
+                } else {
+                    return positiveScore >= 2;
+                }
+            }
+            
+            createCleanContent(content) {
+                // Return clean text without any HTML
+                return content.toString()
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+            
+            filterOpenSourceScripts() {
+                this.filteredScripts = this.scripts.filter(script => {
+                    return script.isOpenSource === true;
+                });
+            }
+            
+            sortScripts() {
+                switch (this.currentSort) {
+                    case 'views':
+                        this.filteredScripts.sort((a, b) => (b.views || 0) - (a.views || 0));
+                        break;
+                    case 'date':
+                        this.filteredScripts.sort((a, b) => {
+                            const dateA = new Date(a.createdAt || 0);
+                            const dateB = new Date(b.createdAt || 0);
+                            return dateB - dateA;
+                        });
+                        break;
+                    case 'relevance':
+                    default:
+                        // Sort by loadstring content first, then views
+                        this.filteredScripts.sort((a, b) => {
+                            const aScore = (a.loadstringContent ? 2 : 0) + (a.verified ? 1 : 0);
+                            const bScore = (b.loadstringContent ? 2 : 0) + (b.verified ? 1 : 0);
+                            
+                            if (bScore !== aScore) return bScore - aScore;
+                            return (b.views || 0) - (a.views || 0);
+                        });
+                        break;
+                }
+                
+                this.renderScriptTabs();
+            }
+            
+            renderScriptTabs() {
+                const container = this.elements.scriptsList;
+                const loading = this.elements.scriptsLoading;
+                const empty = this.elements.emptyState;
+                
+                // Clear existing tabs
+                container.querySelectorAll('.script-tab').forEach(tab => tab.remove());
+                
+                // Hide/show empty state
+                if (this.filteredScripts.length === 0) {
+                    empty.style.display = 'block';
+                    loading.style.display = 'none';
+                } else {
+                    empty.style.display = 'none';
+                    loading.style.display = 'none';
+                    
+                    // Create tabs for ALL open source scripts
+                    this.filteredScripts.forEach((script, index) => {
+                        const tab = this.createScriptTab(script, index);
+                        container.appendChild(tab);
+                    });
+                    
+                    // Auto-select first script
+                    if (this.filteredScripts.length > 0 && !this.selectedScript) {
+                        setTimeout(() => {
+                            const firstTab = container.querySelector('.script-tab');
+                            if (firstTab) firstTab.click();
+                        }, 100);
+                    }
+                }
+                
+                // Update stats
+                const loadstringCount = this.filteredScripts.filter(s => s.loadstringContent).length;
+                this.elements.statsText.textContent = `Found: ${this.filteredScripts.length} open source scripts`;
+                
+                if (loadstringCount > 0) {
+                    this.elements.analysisInfo.textContent += ` (${loadstringCount} with loadstrings)`;
+                }
+            }
+            
+            createScriptTab(script, index) {
+                const tab = document.createElement('div');
+                tab.className = 'script-tab';
+                tab.dataset.index = index;
+                
+                // Get title (limit to 70 chars)
+                let title = script.title || 'Untitled Script';
+                if (title.length > 70) {
+                    title = title.substring(0, 67) + '...';
+                }
+                
+                // Format date
+                const date = script.createdAt ? 
+                    new Date(script.createdAt).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        year: 'numeric'
+                    }) : 'Unknown date';
+                
+                // Create badges
+                let badges = '';
+                
+                if (script.loadstringContent) {
+                    badges += '<span class="script-badge badge-loadstring">LOADSTRING</span>';
+                }
+                
+                if (script.verified) {
+                    badges += '<span class="script-badge badge-verified">VERIFIED</span>';
+                }
+                
+                if (!script.key && !script.keyLink) {
+                    badges += '<span class="script-badge badge-open">OPEN</span>';
+                }
+                
+                tab.innerHTML = `
+                    <div class="script-icon">
+                        ${script.loadstringContent ? '<i class="fas fa-link"></i>' : '<i class="fas fa-code"></i>'}
+                    </div>
+                    <div class="script-info">
+                        <div class="script-title">${this.escapeHtml(title)}</div>
+                        <div class="script-meta">
+                            <span class="script-game">${this.escapeHtml(script.game?.name || 'Various')}</span>
+                            ${badges}
+                        </div>
+                        <div class="script-stats">
+                            <span><i class="far fa-eye"></i> ${script.views?.toLocaleString() || 0}</span>
+                            <span><i class="far fa-calendar"></i> ${date}</span>
+                            ${script.scriptType ? `<span>${script.scriptType}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                tab.addEventListener('click', () => this.selectScript(script, tab));
+                return tab;
+            }
+            
+            selectScript(script, tabElement) {
+                // Update tab selection
+                document.querySelectorAll('.script-tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                tabElement.classList.add('active');
+                
+                this.selectedScript = script;
+                
+                // Get clean content to display
+                const displayContent = script.cleanContent || 'No clean content available';
+                
+                // Update UI
+                let title = script.title || 'Untitled Script';
+                if (title.length > 80) {
+                    title = title.substring(0, 77) + '...';
+                }
+                
+                this.elements.selectedScriptTitle.textContent = title;
+                
+                // Build info string
+                const infoParts = [];
+                if (script.game?.name) infoParts.push(script.game.name);
+                if (script.views) infoParts.push(`${script.views.toLocaleString()} views`);
+                if (script.loadstringContent) infoParts.push('Extracted from loadstring');
+                if (script.scriptType) infoParts.push(script.scriptType);
+                if (script.createdAt) {
+                    const date = new Date(script.createdAt).toLocaleDateString();
+                    infoParts.push(date);
+                }
+                
+                this.elements.selectedScriptInfo.textContent = infoParts.join(' • ');
+                
+                // Display CLEAN CODE (no broken HTML)
+                this.elements.scriptContent.innerHTML = displayContent;
+                
+                // Enable copy button
+                this.elements.copyBtn.disabled = false;
+                
+                this.showStatus('Script loaded', 'success');
+            }
+            
+            async copyScriptCode() {
+                if (!this.selectedScript) {
+                    this.showToast('No script selected', 'error');
+                    return;
+                }
+                
+                const contentToCopy = this.selectedScript.analyzedContent || this.selectedScript.script || '';
+                
+                if (!contentToCopy) {
+                    this.showToast('No code to copy', 'error');
+                    return;
+                }
+                
+                try {
+                    await navigator.clipboard.writeText(contentToCopy);
+                    this.showToast('Code copied to clipboard!', 'success');
+                } catch (error) {
+                    // Fallback
+                    const textArea = document.createElement('textarea');
+                    textArea.value = contentToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    this.showToast('Code copied!', 'success');
+                }
+            }
+            
+            clearResults() {
+                this.scripts = [];
+                this.filteredScripts = [];
+                this.selectedScript = null;
+                this.fetchQueue = [];
+                
+                this.elements.scriptsList.querySelectorAll('.script-tab').forEach(tab => tab.remove());
+                this.elements.emptyState.style.display = 'block';
+                this.elements.scriptsLoading.style.display = 'none';
+                
+                this.elements.selectedScriptTitle.textContent = 'Select a Script';
+                this.elements.selectedScriptInfo.textContent = 'Click on any script to view its clean, open-source code';
+                this.elements.scriptContent.textContent = 'Select a script to view its clean, open-source code...';
+                
+                this.elements.copyBtn.disabled = true;
+                
+                this.elements.statsText.textContent = 'Found: 0 open source scripts';
+                this.elements.analysisInfo.textContent = 'Ready to search';
+            }
+            
+            showLoading(show) {
+                const progressBar = this.elements.progressBar;
+                const progressText = this.elements.progressText;
+                const searchBtn = this.elements.searchBtn;
+                
+                if (show) {
+                    progressBar.style.display = 'block';
+                    progressText.style.display = 'block';
+                    this.elements.progressFill.style.width = '5%';
+                    searchBtn.disabled = true;
+                    searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching ALL Scripts...';
+                    this.elements.scriptsLoading.style.display = 'block';
+                    this.elements.emptyState.style.display = 'none';
+                } else {
+                    setTimeout(() => {
+                        progressBar.style.display = 'none';
+                        progressText.style.display = 'none';
+                        this.elements.progressFill.style.width = '0%';
+                        searchBtn.disabled = false;
+                        searchBtn.innerHTML = '<i class="fas fa-search"></i> Fetch ALL Open Source Scripts';
+                        this.elements.scriptsLoading.style.display = 'none';
+                    }, 500);
+                }
+            }
+            
+            updateProgress(percent, message) {
+                this.elements.progressFill.style.width = `${Math.min(percent, 100)}%`;
+                this.elements.progressText.textContent = message;
+            }
+            
+            showStatus(message, type = 'info') {
+                const statusText = this.elements.statusText;
+                statusText.textContent = message;
+                
+                switch (type) {
+                    case 'success':
+                        statusText.style.color = '#3fb950';
+                        break;
+                    case 'error':
+                        statusText.style.color = '#da3633';
+                        break;
+                    case 'warning':
+                        statusText.style.color = '#f0883e';
+                        break;
+                    case 'loading':
+                        statusText.style.color = '#79c0ff';
+                        break;
+                    default:
+                        statusText.style.color = '#8b949e';
+                }
+            }
+            
+            showToast(message, type = 'success') {
+                const toast = this.elements.toast;
+                const toastMessage = this.elements.toastMessage;
+                
+                toastMessage.textContent = message;
+                
+                switch (type) {
+                    case 'success':
+                        toast.style.background = 'linear-gradient(135deg, #238636, #2ea043)';
+                        break;
+                    case 'error':
+                        toast.style.background = 'linear-gradient(135deg, #da3633, #f85149)';
+                        break;
+                    case 'warning':
+                        toast.style.background = 'linear-gradient(135deg, #f0883e, #f0883e)';
+                        break;
+                }
+                
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            window.scriptFinder = new ScriptBloxOpenSourceFinder();
+            
+            // Set example search
+            setTimeout(() => {
+                document.getElementById('searchInput').value = 'Ftap';
+                window.scriptFinder.showStatus('Try searching for "99 nights" or any other script type', 'info');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
